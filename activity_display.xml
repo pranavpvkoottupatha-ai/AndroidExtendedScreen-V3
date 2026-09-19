@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="DISPLAY"
+        android:textSize="28sp"
+        android:textStyle="bold"
+
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/ipInput"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:hint="Host IP address"
+        android:inputType="text"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/portInput"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:hint="Port"
+        android:text="8989"
+        android:inputType="number"
+        android:singleLine="true"
+
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/connectButton"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="CONNECT"
+
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/disconnectButton"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="DISCONNECT"
+
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/displayStatus"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Not connected"
+
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:id="@+id/screenImage"
+
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+
+        android:layout_weight="1"
+
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+
+        android:background="#000000"
+
+        android:contentDescription="Remote screen" />
+
+</LinearLayout>
