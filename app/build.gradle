@@ -1,0 +1,17 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.pranav.extendedscreen'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.pranav.extendedscreen'
+        minSdk 26
+        targetSdk 35
+
+        versionCode 3
+        versionName "3.0"
+    }
+}
