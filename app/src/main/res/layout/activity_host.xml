@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical"
+    android:gravity="center"
+
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="HOST"
+        android:textSize="30sp"
+        android:textStyle="bold"
+
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:id="@+id/statusText"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Ready to share screen"
+        android:textSize="18sp"
+
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/ipText"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="IP: Not started"
+        android:textSize="18sp"
+
+        android:layout_marginBottom="25dp" />
+
+    <Button
+        android:id="@+id/startButton"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="START SCREEN SHARING"
+        android:textSize="17sp"
+
+        android:layout_marginBottom="15dp" />
+
+    <Button
+        android:id="@+id/stopButton"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="STOP"
+        android:textSize="17sp" />
+
+</LinearLayout>
