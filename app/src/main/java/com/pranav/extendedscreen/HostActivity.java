@@ -1,10 +1,11 @@
 package com.pranav.extendedscreen;
 
 import android.app.Activity;
-import android.os.Bundle;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
+import android.media.projection.MediaProjectionManager;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.text.format.Formatter;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,7 +19,6 @@ public class HostActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_host);
@@ -32,7 +32,8 @@ public class HostActivity extends Activity {
         Button stopButton =
                 findViewById(R.id.stopButton);
 
-        String ipAddress = getWifiIpAddress();
+        String ipAddress =
+                getWifiIpAddress();
 
         ipText.setText(
                 "IP: " + ipAddress + "\nPort: 8989"
@@ -40,12 +41,14 @@ public class HostActivity extends Activity {
 
         startButton.setOnClickListener(v -> {
 
-            Intent captureIntent =
-                    ((android.media.projection.MediaProjectionManager)
+            MediaProjectionManager manager =
+                    (MediaProjectionManager)
                             getSystemService(
                                     Context.MEDIA_PROJECTION_SERVICE
-                            ))
-                            .createScreenCaptureIntent();
+                            );
+
+            Intent captureIntent =
+                    manager.createScreenCaptureIntent();
 
             startActivityForResult(
                     captureIntent,
@@ -81,9 +84,11 @@ public class HostActivity extends Activity {
                 data
         );
 
-        if (requestCode == SCREEN_CAPTURE_REQUEST) {
+        if (requestCode ==
+                SCREEN_CAPTURE_REQUEST) {
 
-            if (resultCode == RESULT_OK && data != null) {
+            if (resultCode == RESULT_OK &&
+                    data != null) {
 
                 Intent serviceIntent =
                         new Intent(
