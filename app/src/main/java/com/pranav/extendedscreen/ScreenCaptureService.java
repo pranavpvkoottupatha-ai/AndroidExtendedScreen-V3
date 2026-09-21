@@ -4,8 +4,8 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
@@ -29,24 +29,19 @@ import java.nio.ByteBuffer;
 public class ScreenCaptureService extends Service {
 
     private static final String CHANNEL_ID =
-            "screen_capture_channel";
+            "extended_screen_channel";
 
     private static final int PORT = 8989;
 
     private MediaProjection mediaProjection;
-
     private VirtualDisplay virtualDisplay;
-
     private ImageReader imageReader;
 
     private HandlerThread captureThread;
-
     private Handler captureHandler;
 
     private ServerSocket serverSocket;
-
     private Socket clientSocket;
-
     private DataOutputStream outputStream;
 
     private volatile boolean running = false;
@@ -55,7 +50,6 @@ public class ScreenCaptureService extends Service {
 
     @Override
     public void onCreate() {
-
         super.onCreate();
 
         createNotificationChannel();
@@ -82,10 +76,21 @@ public class ScreenCaptureService extends Service {
                         -1
                 );
 
-        Intent data =
-                intent.getParcelableExtra(
-                        "data"
-                );
+        Intent data;
+
+        if (Build.VERSION.SDK_INT >= 33) {
+
+            data = intent.getParcelableExtra(
+                    "data",
+                    Intent.class
+            );
+
+        } else {
+
+            data = intent.getParcelableExtra(
+                    "data"
+            );
+        }
 
         if (resultCode != -1 && data != null) {
 
@@ -111,7 +116,7 @@ public class ScreenCaptureService extends Service {
         MediaProjectionManager manager =
                 (MediaProjectionManager)
                         getSystemService(
-                                MEDIA_PROJECTION_SERVICE
+                                Context.MEDIA_PROJECTION_SERVICE
                         );
 
         mediaProjection =
@@ -143,7 +148,7 @@ public class ScreenCaptureService extends Service {
 
         captureThread =
                 new HandlerThread(
-                        "ScreenCaptureThread"
+                        "ExtendedScreenCapture"
                 );
 
         captureThread.start();
@@ -160,7 +165,7 @@ public class ScreenCaptureService extends Service {
 
         virtualDisplay =
                 mediaProjection.createVirtualDisplay(
-                        "ExtendedScreen",
+                        "AndroidExtendedScreen",
                         width,
                         height,
                         density,
@@ -179,8 +184,8 @@ public class ScreenCaptureService extends Service {
         long now =
                 System.currentTimeMillis();
 
-        // About 6 frames per second.
-        if (now - lastFrameTime < 160) {
+        // Approximately 8 FPS.
+        if (now - lastFrameTime < 125) {
             return;
         }
 
@@ -190,7 +195,8 @@ public class ScreenCaptureService extends Service {
 
         try {
 
-            image = reader.acquireLatestImage();
+            image =
+                    reader.acquireLatestImage();
 
             if (image == null) {
                 return;
@@ -235,7 +241,7 @@ public class ScreenCaptureService extends Service {
                     buffer
             );
 
-            Bitmap croppedBitmap =
+            Bitmap cropped =
                     Bitmap.createBitmap(
                             bitmap,
                             0,
@@ -246,19 +252,19 @@ public class ScreenCaptureService extends Service {
 
             bitmap.recycle();
 
-            ByteArrayOutputStream jpegStream =
+            ByteArrayOutputStream stream =
                     new ByteArrayOutputStream();
 
-            croppedBitmap.compress(
+            cropped.compress(
                     Bitmap.CompressFormat.JPEG,
-                    55,
-                    jpegStream
+                    60,
+                    stream
             );
 
-            croppedBitmap.recycle();
+            cropped.recycle();
 
             byte[] frame =
-                    jpegStream.toByteArray();
+                    stream.toByteArray();
 
             sendFrame(frame);
 
@@ -295,17 +301,7 @@ public class ScreenCaptureService extends Service {
 
         } catch (Exception e) {
 
-            try {
-
-                if (clientSocket != null) {
-                    clientSocket.close();
-                }
-
-            } catch (Exception ignored) {
-            }
-
-            clientSocket = null;
-            outputStream = null;
+            closeClient();
         }
     }
 
@@ -325,13 +321,7 @@ public class ScreenCaptureService extends Service {
 
                     synchronized (this) {
 
-                        if (clientSocket != null) {
-
-                            try {
-                                clientSocket.close();
-                            } catch (Exception ignored) {
-                            }
-                        }
+                        closeClient();
 
                         clientSocket =
                                 socket;
@@ -345,10 +335,27 @@ public class ScreenCaptureService extends Service {
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                if (running) {
+                    e.printStackTrace();
+                }
             }
 
-        }).start();
+        }, "ExtendedScreenServer").start();
+    }
+
+    private synchronized void closeClient() {
+
+        try {
+
+            if (clientSocket != null) {
+                clientSocket.close();
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        clientSocket = null;
+        outputStream = null;
     }
 
     private Notification createNotification() {
@@ -374,7 +381,7 @@ public class ScreenCaptureService extends Service {
 
         return builder
                 .setContentTitle(
-                        "Extended Screen"
+                        "Android Extended Screen"
                 )
                 .setContentText(
                         "Screen sharing is active"
@@ -393,7 +400,7 @@ public class ScreenCaptureService extends Service {
             NotificationChannel channel =
                     new NotificationChannel(
                             CHANNEL_ID,
-                            "Screen Capture",
+                            "Extended Screen",
                             NotificationManager
                                     .IMPORTANCE_LOW
                     );
@@ -414,6 +421,8 @@ public class ScreenCaptureService extends Service {
 
         running = false;
 
+        closeClient();
+
         try {
 
             if (serverSocket != null) {
@@ -423,29 +432,24 @@ public class ScreenCaptureService extends Service {
         } catch (Exception ignored) {
         }
 
-        try {
-
-            if (clientSocket != null) {
-                clientSocket.close();
-            }
-
-        } catch (Exception ignored) {
-        }
-
         if (virtualDisplay != null) {
             virtualDisplay.release();
+            virtualDisplay = null;
         }
 
         if (imageReader != null) {
             imageReader.close();
+            imageReader = null;
         }
 
         if (mediaProjection != null) {
             mediaProjection.stop();
+            mediaProjection = null;
         }
 
         if (captureThread != null) {
             captureThread.quitSafely();
+            captureThread = null;
         }
 
         super.onDestroy();
@@ -455,4 +459,4 @@ public class ScreenCaptureService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-              }
+}
